@@ -1,0 +1,85 @@
+---
+title: "League of Legends - Which Resource In The Summoner's Rift Will Most Likely To Carry You to The Victory?"
+subtitle: "We build a logistic regression model to see what is the most significant resource in a game that contribute the most to win a game"
+author: "Dingyi Yu"
+
+date: "`r format(Sys.time(), '%d %B %Y')`"
+abstract: |
+  | As one of the most popular video games in the world, League of Legends had nourished a significantly profitable industry. From the original purpose of personal relaxation to those e-sports players who pursue championship in world-wide competitions, the game propersies among people in a generation and had created more than a million job oppotinities and immeasurable value. Dividing into two groups of five, each group aims to destroy the Nexus of the other group to win the game and thus all players need to gain as much resource as possible to keep the lead position throughout the game. That leads to the key question to be researched in this study: Among all those avaliable resources, what is the most significant attribution that will lead to the final victory of a single game? To make furthur analysis, a logistics regression model is constructed to rank each of the element that attribute to the game result.
+  |
+  | **Keywords:** League of Legends; Logistics Regression Model; Ranked Game; Attribution to Win
+  **Code:** Code and data are avaliable at https://github.com/eddieyyy/League-of-Legends 
+output:
+  html_document: default
+  pdf_document: default
+toc: FALSE
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(pROC)
+```
+
+# Introduction
+
+In the past few years, the e-sport community was under an accelerated stage. The e-sport industry, which used to focus on leisure and entertainment, expect to create value of more than 1.8 billions dollar by 2022. Despite many video games thriving in the industry, few games could maintain their leading position in the community like League of Legends. The Season 9 World Championship in 2019, which was the most recent annual world-wide competition of League of Legends (LoL), had attracted more than 100 millions audiences globally. 
+
+Launched in 2009, League of Legends is a free Multi-player Online Battle Arena (MOBA) video game developed by Riot Games. The game quickly captured the interests of youth and kept thriving for ten years remaining the top popular video game world-wide. In each single game of League of Legends, ten players are divided into two groups of five. Each player controls a unique champion and the goal is to destroy a construction called "Nexus" of the other group to win a game. During the game, players need to obtain and allocate resources to maximize their uses. Those sources are available in many ways, such as killing the hostile champions from the other group, killing minions, killing dragons and barons to obtain buffs and destroying  constructions such as turrets and inhibitors. To win a game, at least five turrets and one inhibitor needed to be destroyed until the team could reach to the hostile Nexus. Other targets, such as the amount of kills, money and buffs, are not indispensable but are undoubtedly beneficial indicators.
+
+The diverse mechanism of the game leads to a new occupation, the gaming analysts. Similar to traditional sports team, the e-sport professional teams also require such analysts who could provide useful strategies that help the team to win the game in the competition. In this study, we had randomly collected data of 5000 games from different levels of players to see what is the most significant resource that contributes to the final win. By ranking all resources based on their level of significance, we could hopefully provide constructive idea for the analysts in professional teams to develop strategies in competition.
+
+# Data
+
+
+### Data Variables
+
+
+
+### Data features and strengths
+
+
+
+### Data weaknesses
+
+
+
+### Data Visulization
+
+
+
+# Model
+
+
+### Logistics Regression Model
+
+
+# Results
+
+
+
+# Discussion
+
+
+## The overall outcome
+
+
+
+
+## Understanding Result
+
+
+
+
+## Small World vs Large World 
+
+## Weaknesses and next steps
+
+
+#### Next Steps 
+
+
+
+# References
+
