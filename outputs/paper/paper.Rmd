@@ -125,15 +125,19 @@ Furthermore, due to certain restrictions, the size of the sampled data is relati
 # plot set up
 fill_color = scale_fill_manual(values = c('#377eb8','#e41a1c'))
 colors = scale_color_manual(values = c('#377eb8','#e41a1c'))
-theme <-  theme_minimal() + theme(axis.text.x = element_text(size = 5, face = "bold"),
-                        axis.text.y = element_text(size = 5, face = "bold"),
-                        axis.title.x = element_text(size = 8),
-                        axis.title.y = element_text(size = 8))
+theme <-  theme_minimal() + theme(axis.text.x = element_text(size = 10),
+                        axis.text.y = element_text(size = 10),
+                        axis.title.x = element_text(size = 15),
+                        axis.title.y = element_text(size = 15))
+
+theme1 <-  theme_minimal() + theme(axis.text.x = element_text(size = 2),
+                        axis.text.y = element_text(size = 2),
+                        axis.title.x = element_text(size = 2),
+                        axis.title.y = element_text(size = 2))
 ```
 
-```{r warning=FALSE, echo=FALSE}
+```{r warning=FALSE, echo=FALSE,fig.width=20, fig.height=7}
 
-options(repr.plot.width = 15, repr.plot.height = 10)
 
 g1 = data %>% 
     ggplot(aes(x=blue_kill,y=red_gold,color=result)) + geom_point(alpha=0.5) + 
@@ -151,7 +155,7 @@ grid.arrange(g1,g2,ncol=2,nrow=1)
 ###### *Figure 1: Winning team tend to earn more gold and get more killings compared to the losing game..*
 
 
-```{r warning=FALSE, echo=FALSE}
+```{r echo=FALSE,fig.width=20, fig.height=7}
 
 
 g1 = data %>% 
@@ -165,7 +169,7 @@ g1
 
 By observing Figure 2, which combines the first tower and the first inhibitor occupation together as they are both structural resources of the game, we could see that first inhibitor is a remarkable indicator for winning a game, especially when the team also destroys the first tower of the game (Figures in top-right and bottom-left corners). As of the team which does not destroy the first inhibitor but destroys the first tower, one interesting phenomenon is that the it is harder for red teams to win in this case comparing to blue teams (Figures in top-left and bottom-right corners).
 
-```{r warning=FALSE, echo=FALSE}
+```{r warning=FALSE, echo=FALSE,fig.width=20, fig.height=10}
 
 
 g3 = data %>% 
@@ -198,7 +202,7 @@ By observing Figure 3, which shows analysis to the trend that how occupation of 
 One thing to notice is that as Baron appears in the game only after 20 minutes, therefore the points in Baron graph indicating Blue team kills the first Baron occurs only after approximately 1200 seconds. For game ends before 20 minutes, Baron is an invalid indicator for making predictions.
 
 
-```{r, warning=FALSE, echo=FALSE,fig.width=8, fig.height=6}
+```{r, warning=FALSE, echo=FALSE,fig.width=20, fig.height=6}
 
 data2 <- data %>% mutate(level = case_when(tier=="BRONZE"~1,
                          tier=="SILVER"~2,
@@ -243,10 +247,8 @@ p_values = cor_pmat(data3%>%
 
 corr3 = ggcorrplot(cnr, hc.order = TRUE, type = "lower",
    outline.col = "black",
-   ggtheme = theme,
+   ggtheme = theme1,
    colors = c('#d8b365', "white", "#2c7fb8"),p.mat=p_values,lab = TRUE)
-
-
 
 
 data4 <- data %>% mutate(level = case_when(tier=="BRONZE"~1,
@@ -268,16 +270,16 @@ p_values = cor_pmat(data4%>%
 
 corr4 = ggcorrplot(cnr, hc.order = TRUE, type = "lower",
    outline.col = "black",
-   ggtheme = theme,
+   ggtheme = theme1,
    colors = c('#d8b365', "white", "#2c7fb8"),p.mat=p_values,lab = TRUE)
 
-corr2
-corr3
-corr4
 
 
+grid.arrange(corr2,corr3,corr4,ncol=3,nrow=1)
 
 ```
+
+
 
 
 
@@ -308,7 +310,8 @@ test_data5 = data5[-train_index5,]
 
 
 full_model <- glm(factor(result)~.,data=train_data5,family="binomial")
-summary(full_model)
+summary(full_model)$coefficients
+
 
 ```
 
@@ -316,7 +319,9 @@ The full model, as shown above, could be expressed in the following way:
 
 $Pr(result)\in \{1, 0\}=$ 
 
-$logit^{-1}(\alpha_0+\beta_{1[i]}(tier_i) + \beta_{2}(blue\_firstBlood) + \beta_{3}(blue\_firstTower)+ \beta_{4}(blue\_firstInhibitor)+\beta_{5}(blue\_firstDragon) + \beta_{6}(blue\_firstBaron) + \beta_{7}(blue\_firstRiftHerald)+\beta_{8}(gameDuration)+\beta_{9}(blue\_gold)+\beta_{10}(blue\_kill)+\beta_{11}(red\_gold)+\beta_{11}(red\_kill)+\epsilon_{i})$
+$logit^{-1}(\alpha_0+\beta_{1[i]}(tier_i) + \beta_{2}(blue\_firstBlood) + \beta_{3}(blue\_firstTower)+ \beta_{4}(blue\_firstInhibitor)+\beta_{5}(blue\_firstDragon)$
+$+ \beta_{6}(blue\_firstBaron) + \beta_{7}(blue\_firstRiftHerald)+\beta_{8}(gameDuration)+\beta_{9}(blue\_gold)+\beta_{10}(blue\_kill)$
+$+\beta_{11}(red\_gold)+\beta_{12}(red\_kill)+\epsilon_{i})$
 
 $\epsilon_{i}$~$N(0,\sigma^2_e)$  
 
@@ -347,11 +352,12 @@ summary(reduced_model)
 ```
 
 
-The full model, as shown above, could be expressed in the following way:
+The reduced model, as shown above, could be expressed in the following way:
 
 $Pr(result)\in \{1, 0\}=$ 
 
-$logit^{-1}(\alpha_0+ + \beta_{1}(blue\_firstBlood) + \beta_{2}(blue\_firstTower)+ \beta_{3}(blue\_firstInhibitor)+\beta_{4}(blue\_firstDragon) + \beta_{5}(blue\_firstBaron) + \beta_{6}(blue\_firstRiftHerald)+\beta_{7}(blue\_kill)+\beta_{8}(red\_kill)+\epsilon_{i})$
+$logit^{-1}(\alpha_0+ + \beta_{1}(blue\_firstBlood) + \beta_{2}(blue\_firstTower)+ \beta_{3}(blue\_firstInhibitor)+\beta_{4}(blue\_firstDragon) + \beta_{5}(blue\_firstBaron)$
+$+\beta_{6}(blue\_firstRiftHerald)+\beta_{7}(blue\_kill)+\beta_{8}(red\_kill)+\epsilon_{i})$
 
 $\epsilon_{i}$~$N(0,\sigma^2_e)$  
 
