@@ -1,16 +1,19 @@
 ---
 title: "League of Legends - Which Resource In The Summoner's Rift Will Most Likely To Carry You to The Victory?"
-subtitle: "We build a logistic regression model to see what is the most significant resource in a game that contribute the most to win a game"
+subtitle: "We build a logit model with more than 96% accuracy to prove that League of Legends is a tower destroying the game."
 author: "Dingyi Yu"
 
 date: "`r format(Sys.time(), '%d %B %Y')`"
 abstract: |
-  | As one of the most popular video games in the world, League of Legends had nourished a significantly profitable industry. From the original purpose of personal relaxation to those e-sports players who pursue championship in world-wide competitions, the game propersies among people in a generation and had created more than a million job oppotinities and immeasurable value. Dividing into two groups of five, each group aims to destroy the Nexus of the other group to win the game and thus all players need to gain as much resource as possible to keep the lead position throughout the game. That leads to the key question to be researched in this study: Among all those avaliable resources, what is the most significant attribution that will lead to the final victory of a single game? To make furthur analysis, a logistics regression model is constructed to rank each of the element that attribute to the game result.
+  | As one of the most popular video games in the world, League of Legends had nourished a significantly profitable industry. From the original purpose of personal relaxation to those e-sports players who pursue championship in world-wide competitions, the game is welcomed among people in a generation and had created more than a million job opportunities and immeasurable value. Dividing into two groups of five, each group aims to destroy the Nexus of the other group to win the game and thus all players need to gain as much resource as possible to keep the lead position throughout the game. That leads to the key question to be researched in this study: Among all those available resources, what is the most significant attribution that will lead to the final victory of a single game? To make further analysis, a logit model is constructed with 96% accuracy showing that destroying the first inhibitor is the indicator of winning. 
   |
-  | **Keywords:** League of Legends; Logistics Regression Model; Ranked Game; Attribution to Win
-  **Code:** Code and data are avaliable at https://github.com/eddieyyy/League-of-Legends 
-output: html_document
+  | **Keywords:** League of Legends; Logit Model; Ranked Game; e-Sport; World Championship;
+  **Code:** Code and data are available at https://github.com/eddieyyy/League-of-Legends 
+output:
+  html_document: default
+  pdf_document: default
 toc: FALSE
+bibliography: references.bib
 ---
 
 ```{r setup, include=FALSE}
@@ -26,19 +29,19 @@ library(caret)# confusion Matix
 
 # Introduction
 
-In the past few years, the e-sport community was under an accelerated stage. The e-sport industry, which used to focus on leisure and entertainment, expect to create value of more than 1.8 billions dollar by 2022. Despite many video games thriving in the industry, few games could maintain their leading position in the community like League of Legends. The Season 9 World Championship in 2019, which was the most recent annual world-wide competition of League of Legends (LoL), had attracted more than 100 millions audiences globally. 
+In the past few years, the e-sport community was under an accelerated stage. The e-sport industry, which used to focus on leisure and entertainment, expect to create value of more than 1.8 billion dollar by 2022. Despite many video games thriving in the industry, few games could maintain their leading position in the community like League of Legends [@Xia]. The Season 9 World Championship in 2019, which was the most recent annual world-wide competition of League of Legends (LoL), had attracted more than 100 million audiences globally [@Novak]. 
 
-Launched in 2009, League of Legends is a free Multi-player Online Battle Arena (MOBA) video game developed by Riot Games. The game quickly captured the interests of youth and kept thriving for ten years remaining the top popular video game world-wide. In each single game of League of Legends, ten players are divided into two groups of five. Each player controls a unique champion and the goal is to destroy a construction called "Nexus" of the other group to win a game. During the game, players need to obtain and allocate resources to maximize their uses. Those sources are available in many ways, such as killing the hostile champions from the other group, killing minions, killing dragons and barons to obtain buffs and destroying  constructions such as turrets and inhibitors. To win a game, at least five turrets and one inhibitor needed to be destroyed until the team could reach to the hostile Nexus. Other targets, such as the amount of kills, money and buffs, are not indispensable but are undoubtedly beneficial indicators.
+Launched in 2009, League of Legends is a free Multi-player Online Battle Arena (MOBA) video game developed by Riot Games[@Cavadenti]. The game quickly captured the interests of youth and kept thriving for ten years remaining the top popular video game world-wide. In each single game of League of Legends, ten players are divided into two groups of five. Each player controls a unique champion and the goal is to destroy a construction called "Nexus" of the other group to win a game. During the game, players need to obtain and allocate resources to maximize their uses. Those sources are available in many ways, such as killing the hostile champions from the other group, killing minions, killing dragons and barons to obtain buffs and destroying constructions such as turrets and inhibitors. To win a game, at least five turrets and one inhibitor needed to be destroyed until the team could reach to the hostile Nexus. Other targets, such as the number of kills, money and buffs, are not indispensable but are undoubtedly beneficial indicators[@Cavadenti].
 
-The diverse mechanism of the game leads to a new occupation, the gaming analysts. Similar to traditional sports team, the e-sport professional teams also require such analysts who could provide useful strategies that help the team to win the game in the competition. In this study, we had randomly collected data of 5000 games from different levels of players to see what is the most significant resource that contributes to the final win. By ranking all resources based on their level of significance, we could hopefully provide constructive idea for the analysts in professional teams to develop strategies in competition.
+The diverse mechanism of the game leads to a new occupation, the gaming analysts. Similar to traditional sports team, the e-sport professional teams also require such analysts who could provide useful strategies that help the team to win the game in the competition. Despite the arguments that such formal analysis seems to be unnecessary for most players who just want to play the game for fun, it is still useful for those players to know how to utilize the resources in the most efficient way and increase the probability of win [@Novak]. 
 
+In this study, we had randomly collected data of 5000 games from different levels of players to see what is the most significant resource that contributes to the final win. Aiming to find the attributes that most related to the victory, a logit model is built to predict the binary outcome of the game, win or lose [@logit]. All statistical analyses were conducted using R [@citeR], with Tidyverse package [@tidyverse] for the convenience of data processing . 
 
 # Data
 ```{r loaddata, include=FALSE}
 
 # get current work directory 
 wd <- getwd()
-
 wd <- substring(wd,1,nchar(wd)-6)
 wd <- paste(wd,"/data/match_full_time.csv",sep='')
 
@@ -49,9 +52,11 @@ data <- data[,-c(2,8, 9, 10, 11,12,13)]
 # add result variable indicating the winner team
 data <- data %>% mutate(result = ifelse(blue_win == 1,'BlueWin','RedWin')) %>% select(-blue_win)
 
-# clean the data 
+# clean the data by removing NA (5000 remaining)
 data <- na.omit(data)
-data <- data %>% filter(gameDuration > 240)
+
+# clean the data by removing NA (4822 remaining)
+data <- data %>% filter(gameDuration > 900)
 
 ```
 
@@ -64,43 +69,52 @@ The data used in the analysis consists of following 14 variables:
 
 *tier* is a categorical variable indicates the match's ranked level which shows the level of the player participated in the match. It has 5 categories including BRONZE, SILVER, GOLD, PLATINUM and DIAMOND in an ascending order.
 
-*blue_kill* is a numeric variable indicates the total number of kills for blue team. 
+*blue_kill* is a numeric variable indicates the total number of kills for blue team, each kill will bring approximately 300 gold to the player. 
 
-*red_kill* is a numeric variable indicates the total number of kills for red team. 
+*red_kill* is a numeric variable indicates the total number of kills for red team, each kill will bring approximately 300 gold to the player. 
 
-*blue_gold* is a numeric variable indicates the total number of gold earned by blue team. 
+*blue_gold* is a numeric variable indicates the total number of gold earned by all five players from blue team. Gold is the only way for players to buy or update their equipment such as weapons which increases damage or armors which increases the defense. Gold could be earned by killing minions and champions from the enemy team, destroying towers and killing monsters such as Baron. There is also stable increment in a rate of approximately 1.9 gold per second. 
 
-*red_gold* is a numeric variable indicates the total number of gold earned by red team. 
+*red_gold* is a numeric variable indicates the total number of gold earned by all five players from red team. Gold is the only way for players to buy or update their equipment such as weapons which increases damage or armors which increases the defense. 
 
-*blue_firstBlood* is a logical variable indicates whether blue team gets the first blood (get the first kill of the game), if the value is False meaning the red team gets the first blood.
+*blue_firstBlood* is a logical variable indicates whether blue team gets the first blood (get the first kill of the game), if the value is False meaning the red team gets the first blood. Note that first blood will bring 500 gold to the player. Golds could be earned by killing minions and champions from the enemy team, destroying towers and killing monsters such as Baron. There is also stable increment in a rate of approximately 1.9 gold per second. 
 
-*blue_firstTower* is a logical variable indicates whether blue team destroy the first tower of the game , if the value is False meaning the red team destroys the first tower.
 
-*blue_firstInhibitor* is a logical variable indicates whether blue team destroy the first inhibitor of the game , if the value is False meaning the red team destroys the first inhibitor.
+*blue_firstTower* is a logical variable indicates whether blue team destroy the first tower of the game, if the value is False meaning the red team destroys the first tower. Note that there are eleven towers for each team, and at least five towers need to be destroyed for winning most games (without occurrence of surrender). Destroying the first tower will bring 650 gold to the team (100 gold each player and 150 extra gold for the players who destroyed the first tower).
 
-*blue_firstBaron* is a logical variable indicates whether blue team kills the first Baron of the game, if the value is False meaning the red team kills the first Baron.
+*blue_firstInhibitor* is a logical variable indicates whether blue team destroy the first inhibitor of the game, if the value is False meaning the red team destroys the first inhibitor. Note that there are three inhibitors for each team, and at least one inhibitor needs to be destroyed for winning most games (without occurrence of surrender). At least three towers must be destroyed before destroying an inhibitor. Once an inhibitor is destroyed, it would produce super minion which is powerful for destroying structures.
 
-*blue_firstDragon* is a logical variable indicates whether blue team kills the first dragon of the game, if the value is False meaning the red team kills the first dragon.
+*blue_firstBaron* is a logical variable indicates whether blue team kills the first Baron of the game, if the value is False meaning the red team kills the first Baron. Note that killing Baron will add an extra 4-minute buff to allied team, which includes reduced recalling time, strengthening the nearby minions' movement speed, defense, damage and attack range. The Baron buff is extremely helpful for destroying structures as it decreases the time for towers to kill minions. The first Baron appears at 20 minutes of the game,
 
-*blue_firstRiftHerald* is a logical variable indicates whether blue team kills the first Rift Herald of the game, if the value is False meaning the red team gets the first Rift Herald.
+*blue_firstDragon* is a logical variable indicates whether blue team kills the first dragon of the game, if the value is False meaning the red team kills the first dragon. Killing the first dragon will bring a permanent buff to the team, which might be the increment of movement speed, health regen, defense or damage, depending on the types of the dragon. The first dragon appears at 5 minutes of the game.
 
-*gameDuration* is a numeric variable indicates the total length of the game in seconds.
+*blue_firstRiftHerald* is a logical variable indicates whether blue team kills the first Rift Herald of the game, if the value is False meaning the red team gets the first Rift Herald. Killing the first rift herald can summon a rift herald which could cause tremendous damage to the tower. Note that the rift herald appears at 8 minutes of the game and disappears at 19.5 minutes of the game. 
+
+*gameDuration* is a numeric variable indicates the total length of the game in seconds. Note that only games which exceed 15 minutes would be considered since game ending before 15 minutes is abnormal and thus non-representative. 
 
 *result* is a categorical variable shows the winner of the match. 
 
 A brief overview of the statistical information for the numerical data is shown below
 
-```{r, echo=FALSE}
+```{r, include=FALSE}
 
+# summary the numeric data
 ndata <- data[,c(3,4,5,6,13)]
 summary(ndata)
 
 ```
+variable name | Min | Median | Mean | Max 
+------|----------|----------|----------|----------|
+$blue\_kill$ | 0 | 0 | 0 | 0 
+$red\_kill$ | 0| 0| 0| 0 
+$blue\_gold$ | 15166| 49548| 49811| 110544
+$red\_gold$ | 16575| 49644| 49506| 110531
+$gameDuration$ | 902| 1605| 1621| 3641
 
 
 ### Data features and strengths
 
-The data is collected through the bronze to diamond ranked-game record from 2020-08-07 to 2020-09-07 in Korean server which is retrieved from RIOT API - https://developer.riotgames.com/.
+The data is collected through the bronze to diamond ranked-game record from 2020-08-07 to 2020-09-07 in Korean server which is retrieved from [@riot]. There are 5000 games in total with 1000 game records in each tier. 
 
 The time of the data is relatively closed to today, which is a remarkably strength of the data. Since the version of the game updates frequently and any significant update may change the way of winning the game. 
 
@@ -114,15 +128,12 @@ As mentioned above, the data is from the Korean server only, which makes it hard
 
 Furthermore, due to certain restrictions, the size of the sampled data is relatively small, as we need to perform model validation for training and testing our model. In order to effectively utilize the limited data, the cross-validation will be performed while building the model which potentially increase the cost by doing calculation. 
 
-
-
-
-### Data Visulization
+### Data Visualization
 
 
 ```{r, include=FALSE}
 
-# plot set up
+# set up the theme and color constant for ggplot
 fill_color = scale_fill_manual(values = c('#377eb8','#e41a1c'))
 colors = scale_color_manual(values = c('#377eb8','#e41a1c'))
 theme <-  theme_minimal() + theme(axis.text.x = element_text(size = 10),
@@ -138,6 +149,7 @@ theme1 <-  theme_minimal() + theme(axis.text.x = element_text(size = 2),
 
 ```{r warning=FALSE, echo=FALSE,fig.width=20, fig.height=7}
 
+# plot the kill vs gold data 
 
 g1 = data %>% 
     ggplot(aes(x=blue_kill,y=red_gold,color=result)) + geom_point(alpha=0.5) + 
@@ -157,6 +169,7 @@ grid.arrange(g1,g2,ncol=2,nrow=1)
 
 ```{r echo=FALSE,fig.width=20, fig.height=7}
 
+# plot the first tower vs first inhibitor data 
 
 g1 = data %>% 
     ggplot(aes(x=blue_firstTower,y=blue_firstInhibitor,color=result)) + geom_point(alpha=0.5) + 
@@ -171,6 +184,7 @@ By observing Figure 2, which combines the first tower and the first inhibitor oc
 
 ```{r warning=FALSE, echo=FALSE,fig.width=20, fig.height=10}
 
+# plot remaining logical variables vs gameDuration data
 
 g3 = data %>% 
     ggplot(aes(x=gameDuration,y=blue_firstDragon,color=result)) + geom_point(alpha=0.5) + 
@@ -204,6 +218,7 @@ One thing to notice is that as Baron appears in the game only after 20 minutes, 
 
 ```{r, warning=FALSE, echo=FALSE,fig.width=20, fig.height=6}
 
+# quantify the categorical variable tier for correlation matrix
 data2 <- data %>% mutate(level = case_when(tier=="BRONZE"~1,
                          tier=="SILVER"~2,
                          tier=="GOLD"~3,
@@ -211,23 +226,27 @@ data2 <- data %>% mutate(level = case_when(tier=="BRONZE"~1,
                          tier=="DIAMOND"~5
   ))  %>% select(-tier)
 
+# quantify the categorical variable result for correlation matrix
 data2 <- data2 %>% mutate(winner = case_when(result=="BlueWin"~1,
                          result=="RedWin"~0
   ))  %>% select(-result)
 
+# build correlation matrix with all quantified data except for matchId
 cnr = cor(data2%>% 
           select(-c(matchId)))
 
+# calculate p-value of each paired-variable all quantified data except for matchId
 p_values = cor_pmat(data2%>% 
           select(-c(matchId)))
 
+# plot the correlation matrix
 corr2 = ggcorrplot(cnr, hc.order = TRUE, type = "lower",
    outline.col = "black",
    ggtheme = theme,
    colors = c('#d8b365', "white", "#2c7fb8"),p.mat=p_values,lab = TRUE)
 
 
-
+# repeat the above procedures 
 data3 <- data %>% mutate(level = case_when(tier=="BRONZE"~1,
                          tier=="SILVER"~2,
                          tier=="GOLD"~3,
@@ -239,6 +258,7 @@ data3 <- data3 %>% mutate(winner = case_when(result=="BlueWin"~1,
                          result=="RedWin"~0
   ))  %>% select(-result)
 
+# remove blue_gold,red_gold variables in the updated correlation matrix
 cnr = cor(data3%>% 
           select(-c(matchId,blue_gold,red_gold)))
 
@@ -262,6 +282,7 @@ data4 <- data4 %>% mutate(winner = case_when(result=="BlueWin"~1,
                          result=="RedWin"~0
   ))  %>% select(-result)
 
+# remove level and gameDuration variables in the updated correlation matrix
 cnr = cor(data4%>% 
           select(-c(matchId,blue_gold,red_gold,level, gameDuration)))
 
@@ -273,22 +294,15 @@ corr4 = ggcorrplot(cnr, hc.order = TRUE, type = "lower",
    ggtheme = theme1,
    colors = c('#d8b365', "white", "#2c7fb8"),p.mat=p_values,lab = TRUE)
 
-
-
 grid.arrange(corr2,corr3,corr4,ncol=3,nrow=1)
 
 ```
 
-
-
-
-
-
 ###### *Figure 4: Correlation matrices of all variables*
 
-Figure 4 shows the process of filtering variables using correlation matrices. According to the first matrix, where we include all variables (except for the matchId because it makes no sense on predicting the result), we could see that certain variables are high-related, for example, gold versus gameDuration and gold versus kills, which are respectively high as 0.92 and 0.86. Such correlation is reasonable as the amount of gold earned will definitely increase as the game lasts longer or players take more killings (each killing is worth 300 gold in general). Such high correlation between variables might cause the issue of multi-collinearity, which might make it difficult to measure individual influence of certain predictors on the response variable and make the fitted model unstable. 
+Figure 4 shows the process of filtering variables using correlation matrices. According to the first matrix, where we include all variables (except for the matchId because it makes no sense on predicting the result), we could see that certain variables are high-related, for example, gold versus gameDuration and gold versus kills, which are respectively high as 0.92 and 0.86. Such correlation is reasonable as the amount of gold earned will definitely increase as the game lasts longer or players take more killings (each killing is worth 300 gold in general). Such high correlation between variables might cause the issue of multi-collinearity, which might make it difficult to measure individual influence of certain predictors on the response variable and make the fitted model unstable [@logit]. 
 
-To reduce the the potential multi-collinearity issue, we further remove the gold variable as it is commonly known that the winner side always end with more gold as it is the essential measurement of taking the lead. The second correlation matrix shows the result without the gold, and we would like to focus on the correlation between winner(our response) and other variables. Based on the value presented by the matrix, we could see that level(which is originally tier in raw data) and gameDuration had rare almost no correlation explaining the final outcome of a game, so we further eliminate the two variables.
+To reduce the potential multi-collinearity issue, we further remove the gold variable as it is commonly known that the winner side always end with more gold as it is the essential measurement of taking the lead. The second correlation matrix shows the result without the gold, and we would like to focus on the correlation between winner(our response) and other variables. Based on the value presented by the matrix, we could see that level(which is originally tier in raw data) and gameDuration had rare almost no correlation explaining the final outcome of a game, so we further eliminate the two variables.
 
 The third correlation matrix is ideally constructed, as no correlations between any explanatory variables could exceed 0.5, which helps us avoid the potential multi-collinearity issue. Moreover, we could see that inhibitor and kill are most correlated to final outcome of the game as they have higher correlation to winner comparing to other variables. 
 
@@ -299,23 +313,48 @@ As the final outcome of winning a game is a binary result (1 stands for blue tea
 By dividing the data into 85% for model-training and 15% for model-testing, we use model validation by seeing the accuracy in the form of confusion matrix to evaluate the model performance.
 
 
-```{r, echo=FALSE}
+```{r, include=FALSE}
+
+# using student number as seed for sampling 
 set.seed(1002077753)
 
+# remove matchId which is irrelevant to the final outcome
 data5 <- data[,-1]
+
+# Quantify the categorical variable result
 data5 = data5 %>% mutate(result = ifelse(result == 'BlueWin',1,0))
+
+
+# Randomly select 85% of the data for training
 train_index5 = sample(nrow(data5),0.85 * nrow(data5))
 train_data5 = data5[train_index5,]
 test_data5 = data5[-train_index5,]
 
-
+# Build logit model
 full_model <- glm(factor(result)~.,data=train_data5,family="binomial")
-summary(full_model)$coefficients
-
-
 ```
+variable name | coefficient | p-value 
+------|----------|----------|
+(Intercept)  |            $-0.0851$ | $0.9247$
+tierDIAMOND   |           $0.7582$| $0.1719$
+tierGOLD |                 $0.4248$ |$0.3901$
+tierPLATINUM |            $0.1702$ |$0.7411$
+tierSILVER   |           $0.3170$| $0.4797$
+blue_kill     |          $0.0390$ | $0.2097$
+red_kill       |         $-0.0261$ | $0.3832$
+blue_gold       |        $0.0008$ | $1.6529 * 10^{-29}$ 
+red_gold         |       $-0.0009$| $6.1245 * 10 ^{-35}$
+blue_firstBloodTRUE |    $-0.4430$ | $0.1346$
+blue_firstTowerTRUE |    $-1.0374$| $0.0013$
+blue_firstInhibitorTRUE | $2.0510$ | $4.7741*10^{-10}$
+blue_firstBaronTRUE   |  $-1.1690$ | $4.9835*10^{-4}$
+blue_firstDragonTRUE   | $0.2926$ | $0.3177$
+blue_firstRiftHeraldTRUE | $-0.0963$ | $0.7558$
+gameDuration       |    $0.0031$| $0.1155$
 
-The full model, as shown above, could be expressed in the following way:
+###### *Table 1: The full model summary and statistics P-value*
+
+The full model, as shown above in Table 1, could be expressed in the following way:
 
 $Pr(result)\in \{1, 0\}=$ 
 
@@ -325,34 +364,69 @@ $+\beta_{11}(red\_gold)+\beta_{12}(red\_kill)+\epsilon_{i})$
 
 $\epsilon_{i}$~$N(0,\sigma^2_e)$  
 
-Using the usual 5% threshold significant level which is indicated by at least one * shown after the p-value of certain variables, we mark those variables as significant. Significant variables include gold, tower, inhibitor and Baron. The gold's correlation to the final outcome is clear as demonstrated above, and we could see destroying structures is more essential compared to resources from killing and other jungle resources. The Baron appears to be significant could also be explained by its powerful buff for destroying structures.
+
+Using the usual 5% threshold significant level to measure the p-value of variables, we mark certain variables as significant. Significant variables include gold, tower, inhibitor and Baron. The gold's correlation to the final outcome is clear as demonstrated above, and we could see destroying structures is more essential compared to resources from killing and other jungle resources. The Baron appears to be significant could also be explained by its powerful buff for destroying structures.
 
 However, certain coefficients of the predictors in the model tend to be anti-intuitive. For example, teams with the first Baron and first tower are predicted be less possible to win with negative coefficients, which is very likely caused by multi-collinearity issue. To further test the performance of the model, we use confusion matrix to see the accuracy.
 
-```{r, echo=FALSE}
+```{r, include=FALSE}
+
+# make prediction on the probability
 prob = predict(full_model,newdata = test_data5,type = 'response')
+# Blue team wins if the probability is larger than 0.5
 prediction = factor(ifelse(prob>0.5,1,0))
+# Build confusion matrix
 cm = confusionMatrix(prediction,factor(test_data5$result))
 cm
 ```
+Confusion Matrix and Statistics
+
+         Reference
+    Prediction   0   1
+             0 336   9
+             1   4 375
+             
+    Accuracy : 0.9820                       
+    95% CI : (0.9695, 0.9904)
 
 
-The confusion matrix shows that the accuracy of the prediction using the model is approximately 98%, which is extremely high. Of the 740 testing data, only 15 predictions get wrong. Despite the high accuracy, more improvement could be done through eliminating the multi-collinearity issue for a more reasonable predictors' interpretation of the model. We then build a reduced model by removing gold, gameDuration and tier variables.
+The confusion matrix shows that the accuracy of the prediction using the model is approximately 98%, which is extremely high. Of the 724 testing data, only 13 predictions get wrong. Despite the high accuracy, more improvement could be done through eliminating the multi-collinearity issue for a more reasonable predictors' interpretation of the model. We then build a reduced model by removing gold, gameDuration and tier variables.
 
 
-```{r, echo=FALSE}
+```{r, include=FALSE}
+
+# remove irrelevant variables and variables that might cause multi-collinearity
 data6 <- data[,-c(1,2,5,6,13)]
+
+# quantify the categorical variable result
 data6 = data6 %>% mutate(result = ifelse(result == 'BlueWin',1,0))
+
+# randomly select 85% of the data for training
 train_index6 = sample(nrow(data6),0.85 * nrow(data6))
 train_data6 = data6[train_index6,]
 test_data6 = data6[-train_index6,]
+
+# build  logit model
 reduced_model <- glm(factor(result)~.,data=train_data6,family="binomial")
 summary(reduced_model)
-
 ```
 
+variable name | coefficient | p-value 
+------|----------|----------|
+(Intercept)  |            $-0.2125$ | $0.464648$
+blue_kill     |          $0.3262$ | $2.000*10^{-16}$
+red_kill       |         $-0.3605$ | $2.000*10^{-16}$
+blue_firstBloodTRUE |    $-0.3253$ | $0.0687$
+blue_firstTowerTRUE |    $0.3325$| $0.0809$
+blue_firstInhibitorTRUE | $2.3429$ | $2.000*10^{-16}$
+blue_firstBaronTRUE   |  $0.7241$ | $0.0003$
+blue_firstDragonTRUE   | $0.3817$ | $0.0293$
+blue_firstRiftHeraldTRUE | $0.0109$ | $0.9530$
 
-The reduced model, as shown above, could be expressed in the following way:
+###### *Table 2: The reduced model summary and statistics P-value*
+
+
+The reduced model, as shown in Table 2 above, could be expressed in the following way:
 
 $Pr(result)\in \{1, 0\}=$ 
 
@@ -361,19 +435,33 @@ $+\beta_{6}(blue\_firstRiftHerald)+\beta_{7}(blue\_kill)+\beta_{8}(red\_kill)+\e
 
 $\epsilon_{i}$~$N(0,\sigma^2_e)$  
 
-Using the usual 5% threshold significant level which is indicated by at least one * shown after the p-value of certain variables, we mark those variables as significant. Significant variables include kills, tower, inhibitor and Baron. Similar explanation could be made as above, except for the fact that significance of gold variable transfers to the significance of the kills variable. A note-worthy change is that the significance of the first tower decreases in the reduced model.
+Using the usual 5% threshold significant level to measure the p-value of variables, we mark certain variables as significant. Significant variables include kills, dragon, inhibitor and Baron. Similar explanation could be made as above, except for the fact that significance of gold variable transfers to the significance of the kills variable. Another note-worthy change is that the significance of the first tower decreases in the reduced model, as the P-value indicating it is no more significant in explaining the final outcome. In comparison, the significance of first dragon increases as its P-value reduces to less than 0.05 in the reduced model. 
 
-The most remarkable improvement of the reduced model is to revise those unreasonable coefficients of the model, as one could see that acquiring first Baron and tower becomes positively related to the probability of final victory. Among the significant variables, we could see that the destroying the first inhibitor contribute the most to the final victory with an approximate weight of 2.30.
+The most remarkable improvement of the reduced model is to revise those unreasonable coefficients of the model, as one could see that acquiring first Baron and tower becomes positively related to the probability of final victory. Among the significant variables, we could see that the destroying the first inhibitor contribute the most to the final victory with an approximate weight of 2.34.
 
 
-```{r, echo=FALSE}
+```{r, include=FALSE}
+
+# make prediction on the probability
 prob = predict(reduced_model,newdata = test_data6,type = 'response')
+# Blue team wins if the probability is larger than 0.5
 prediction = factor(ifelse(prob>0.5,1,0))
+
+# Build confusion matrix 
 cm = confusionMatrix(prediction,factor(test_data6$result))
 cm
 ```
 
-Surprisingly, the confusion matrix shows an accuracy of approximately 96% for the reduced model, which is a bit lower than the full model. Of the 740 testing data, 30 predictions get wrong. However, since 96% accuracy is still much higher than expected, we could change our training and sampling data for fitting the model to check the performance of the reduced model, which will be left for future work.
+         Reference
+    Prediction   0   1
+             0 338   11
+             1   18 357
+             
+    Accuracy : 0.9599                       
+    95% CI : (0.943, 0.973)
+    
+    
+Surprisingly, the confusion matrix shows an accuracy of approximately 96% for the reduced model, which is a bit lower than the full model. Of the 724 testing data, 29 predictions get wrong. However, since 96% accuracy is still much higher than expected, we could change our training and sampling data for fitting the model to check the performance of the reduced model, which will be left for future work.
 
 For now, I would take the reduced model for further analysis, as it presents a more reasonable coefficient and even if lower but still high accuracy
 
@@ -382,34 +470,93 @@ For now, I would take the reduced model for further analysis, as it presents a m
 
 As the model comparison and interpretation shown above, the reduced model is selected for analyzing the final outcome of the game. The model includes variables of killing, first tower, first inhibitor, first blood, first dragon, first Baron and first Rift Herald as predictors. 
 
-Among the predictors, we could see that the most significant indicator that could be used to forecast the final victory is destroying the first inhibitor. It is reasonable as destroying the first inhibitor would cause the spawning of superior minions, which will cause much trouble to the other team. Moreover, having the first Baron is also a good sign for winning a game, as it will indirectly increase the probability of destroying more structures including inhibitors by providing allied minions powerfully buff while attacking structures.  As of killing, despite the fact that killing more enemies also contribute to the final victory of the game, it is not wise to spend much time on fighting as destroying structures is more effective for winning a game.
+Among the predictors, we could see that the most significant indicator that could be used to forecast the final victory is destroying the first inhibitor. It is reasonable as destroying the first inhibitor would cause the spawning of superior minions, which will cause much trouble to the other team. Moreover, having the first Baron is also a good sign for winning a game, as it will indirectly increase the probability of destroying more structures including inhibitors by providing allied minions powerfully buff while attacking structures.  
 
-In conclusion, according to the model, the team must play smartly and utilize the resources as efficiently as possible to destroy structures and pay extra attention on the first Baron to win a game. When it comes to make decisions on resource exchange with the enermy team, taking or defending structures should be in a top-priority. 
+As of killing, despite the fact that killing more enemies also contributes to the final victory of the game, it is not wise to spend much time on team fighting as destroying structures is more effective for winning a game. Even though one single killing could increase the probability to win by approximately 0.33 unit which seems to be an attractive choice, involving into a fight is in fact a risky choice as a death could also lead to the increment of winning chance of the enemy team [@Maymin]. Moreover, the first blood attribution is inversely related to the possibility of winning a game, as its coefficient remains negative in both models. Though the attribution is not considered to be significant, its p-value is very closed to the threshold of 5% which make it worth consideration. One possible interpretation is that the reward of first kill is not significant enough, whereas it might lead to an illusion to the team that they are holding a safe lead and make wrong decisions [@Cavadenti]. 
+
+variable name | weight | 
+------|----------|
+blue_kill     |          $0.3262$ 
+red_kill       |         $-0.3605$ 
+blue_firstInhibitorTRUE | $2.3429$ 
+blue_firstBaronTRUE   |  $0.7241$ 
+blue_firstDragonTRUE   | $0.3817$ 
+
+###### *Table 3: Significant predictors and corresponding weight contributing to the final victory*
 
 
+```{r, warning=FALSE, message=FALSE, echo=FALSE,fig.width=8, fig.height=4}
+
+# construct ROC curve
+test_data7<-cbind(test_data6,prediction)
+
+modelroc=roc(test_data7$result,prob)
+plot(modelroc,print.auc=TRUE,auc.polygon=TRUE,grid=c(0.1,0.2),grid.col=c("green","red"),max.auc.polygon=TRUE,auc.polygon.col="skyblue",print.thres=TRUE, main="")
+
+```
+
+###### *Figure 5: ROC Curve  of the reduced-model, with an accuracy of 99.2%*
+
+We then want to use Receiver Operating Characteristic (ROC) Curve to see the accuracy of the model agian by using package [@roc]. Note that the area under the curve, represented by the gray square, have a sum of 1. The blue area stands for the accuracy that our predicted voting preference matches the real response. In the curve, the accuracy is measured to be 72% (Figure 5) [@narkhede_2019].
+
+In conclusion, according to the model, the team must play smartly and utilize the resources as efficiently as possible to destroy structures and pay extra attention on the first Baron to win a game. When it comes to make decisions on resource exchange with the enemy team, taking or defending structures should be in a top priority. 
 
 
 # Discussion
 
+The logit model considered certain variables in a normal ranked game and demonstrates a rank of significance of relevant variables. As shown in aforementioned discussions, the essence of the game is to destroy structures as the occupation of first inhibitor and tower could be seen as a remarkable sign of winning the game. However, it is not fair to ignore the importance of the team fight, most structure destruction could be done only after winning a team fight [@Maymin]. Furthermore, the resources coming from the structure are limited, as towers do not revive once being destroyed. 
 
-## The overall outcome
+The total gold and killings, as is shown in the analysis, is highly related to the final outcome of a game. The two variables is in fact self-related as killing itself means more gold, and team with more gold is more likely to win a team fight or perform solo-kill which leads to the potential increase of killing number [@Cavadenti]. Besides, for the team winning a team-fight, the gold increase is usually far more than the gold earned from killing, but always associated with incoming gold from destroying structures, killing monsters and more farming time. In the study, to avoid multi-collinearity, the total gold variable is removed since the model aims to focus on the specific attribution that could be actively chosen by players rather than a general trend. However, gold could not be fully taken over by killings as the reasons explained before. For certain champions, such as Twisted Fate, their gold is naturally higher than other champions with other conditions keep the same as its part of their abilities [@tf].  
 
+The elite jungle monsters, including dragons, Barons and Rift Heralds, are also marked as  important competitive resources as they provide extremely helpful buffs that are essential for winning the game. Such significance is also reflected in our model. Recalling from Table 3, occupying the first Baron is a significant attribution for winning the game, only after destroying the first Inhibitor. That indirectly emphasized the importance of structure destroying in this game, as Baron buff essentially increase the probability of destroying towers by empower minions rather than empower champions directly. In other words, killing a Baron and have the buff has nothing to do with winning a team-fight, but increase the probability of taking towers down avoid involving into a fighting (due to the fire range increment of the minions). In the earlier version of the game, when killing Baron simply provide a team with significant amount of gold and buffs increasing attack damage and health regen, team without Baron buffs always took strategies by clearing the minions and avoided fighting until the end of the buffs. As a result, when one team was in a great lead, taking Baron buff would not help them end the game quickly. That concern led to the reform of Baron buff, which was designed to empower the minions and thus make it hard to clear the lane. Therefore, when a game proceeds to be after 20 minutes, to keep the wards in the Baron region is a significant task for each of the ten players, especially for support player (who is in general responsible for putting wards). Take the Season 8 World Championship as an example, a number of teams surpassed successfully by stealing the Baron due to the lack of wards of the other team in Baron area [@Novak]. Also, Baron area is one of the riskiest area that a 5v5 team fight will happen, which is always the most significant team fight throughout the game which we sometimes called it "winning hand" [@Cavadenti]. Here we leave a motivation for further analysis on the value of Baron buff in future study.
 
+When it comes to dragons, which is also included in Table 3 as a significant attribution winning the game, we could see that the model marks the value of killing the first dragon only a bit more than a kill. Unlike Baron buff which is temporal but powerful, dragon buff is powerful only if a team could keep killing following dragons and obtain the cumulative permanent buff. Therefore, it is not comprehensive to focus only on the first dragon buff, as killing the first dragon does not necessarily contributes to the occupation of following dragons. As is reflected in a number of professional matches, for teams with a comparatively less powerful champions in early game, they usually give up the first dragon or taking other resources for exchange. For following dragons, however, it is less possible for them to give up [@Novak]. Moreover, as the types of dragons in a game is random, and certain champions might prefer certain types of dragons which might lead to the high rate of taking the first dragon. In comparison, Rift Herald does not play significant role in the model for predicting the final outcome. Rift Herald is used for a one-time huge damage to a tower, and thus has a high correlation with the rate of taking first tower (0.46) as shown in Figure 4. However, since first tower is not included in the significant list (will be discussed later), the attribution of first Rift Herald is thus not remarkable. Furthermore, according to Novak, during the professional competitions, Rift Herald is usually the second choice of resource exchange for teams who lost the first dragon. In other words, teams occupying the first Rift Herald usually lost the first dragon. Among the 4822 observations (after data cleaning), only approximately 27% of the games have a team with both the first Rift Herald and the first Dragon.
 
+```{r, include=FALSE}
+data10 <- data %>% filter((blue_firstRiftHerald == TRUE & blue_firstDragon == TRUE))
+nrow(data10)/nrow(data)
+```
 
-## Understanding Result
+The most remarkable signal for winning a game, as shown in the model, is taking the first inhibitor. Taking the first inhibitor means the big pressure coming from the superior minions, which makes it hard for the enemy team to clear the lane. Moreover, spending too much time on clearing the lane will lead to lack of attention on other important factors, such as warding the Baron, especially when the lost inhibitor is on the bottom lane (farthest from the Baron area). Though the variable itself is biased as taking the first inhibitor is equivalent to a safe lead in a game, it does reflect a basic concept of winning this game, which is to destroy structures, as the spawning of superior minions must be handled or otherwise they will destroy towers naturally. In 83.4% of the sample used in this study, team taking the first inhibitor won the game. However, such rate decreases to 73.7% when it comes to the first tower. 
 
+```{r, include=FALSE}
+data11 <- data %>% filter((blue_firstInhibitor == TRUE & result == "BlueWin") | (blue_firstInhibitor == FALSE & result == "RedWin" ))
+data12 <- data %>% filter((blue_firstTower == TRUE & result == "BlueWin") | (blue_firstTower == FALSE & result == "RedWin" ))
 
+nrow(data12)/nrow(data)
+```
 
+### Small World vs Large World [@mcelreath_2020]
 
-## Small World vs Large World 
+For the small world of our self-contained model, the accuracy score of our forecasting model is more than 96%, which is high enough to proof the fitness of the model to the small world. From the data, we also found that inhibitor and Baron have obvious pattern of effect on final outcome of the game. Therefore, for our logit model's small world, it is better to use reduced model to generate the results as the interpretation of coefficient is more reasonable.
 
-## Weaknesses and next steps
+For the large world of broader context, there are factors that have not been considered and imagined in the small world. For example, the small world only focuses on fitting the model based on the sampled data, however, the situation of the games that are not covered in the small world while exist in the large world, has never been imagined. Also, in the large world with more realistic context, the effect of other demographic factors such as different player skills and different champion selections are not in the small world's consideration, as well. Overall, in a broad-context large world, it is not as fitted as it was in the small world. And the issues noticeable here are just the things that we could improve in the future. 
 
+### Weaknesses and next steps
+
+Despite the model performs well on predicting the results of the game, limitations exist in this study as always. 
+
+The model does not consider the players' skill, as the variable is hard to quantify. Different players master different champions and the one they play might not always be the one they are good at. Various reasons could cause the situation, such as the champion is banned or the player want to practice other champions. Even all players are assumed to play champions they master, skill difference still exists even in the same tier level. The skill difference might lead to the hit rate of attacks, farming efficiency (last hit the minion to earn gold) and decision making.  
+
+Moreover, the model fails to include the number of minions killed by a team, which is believed as the most important source of gold earning in a game[@Maymin]. However, as the missing attribution is highly related to the total gold earned by a team, the lack of such information could somewhat be compensated. Despite attempt to avoid much multi-collinearity by removing correlated variables, the issue still exists as it is hard to select independent variables in a game. For example, the first inhibitor and first tower variables are unavoidably correlated. Certain problems should be handled by representing variables in a more reasonable way, such as using the total tower destroyed instead of the first tower to decrease the effect of Rift Herald. 
+
+Further, the data limitation is obvious, as is discussed in the data session. The data is from the Korean server and thus the result is hard to be generalize to all players as the playing style in different. According to the statistics from World Championship, teams from China region loves team fight whereas teams from Korea focus on lane manipulation and destroying towers [@Maymin]. Also, the sample size is not big enough to eliminate the negative effects caused by possible noises. After processing the data, only 4822 observations left for analysis which is divided to 5 tiers. Since we perform the model validation and divide 15% of the data for testing, only around 4000 observations is used for building the model. 
+
+What's more, the champion selection is not considered while doing the analysis, which cannot be ignored when analyzing the game outcome. There are more than 150 champions that could be selected in a game, and due to the different abilities each champion uniquely has, different strategies could be used for winning a game. For example, ADC players (Attack Damage Carry) will lead the late game whereas assassin champions tend to be powerful in the early game. Since the model tends to focus on the resources from early game, such as first blood and first tower, it inevitably favors the teams which are more potentially lead the earlier game. Besides, there are "combos" for certain champions, which would increase the possibility of winning. For example, if one team selects Yasuo, with or without teammates having airborne ability will significantly affect the winning probability, as the ultimate ability of Yasuo requires the enemy to be airborne [@yasuo]. 
+
+Finally, the data processing method has room for improvement. In this study, as the raw data does not have missing value, we only filtered out games ended before 15 minutes to remove outliers caused by disconnected players. However, certain techniques could be used to handle those cases as we do not have enough data.
 
 #### Next Steps 
 
+● Collect sampled data with closer date for the future analysis: Since the update of the game is frequently, and strategies also changes along with the version. Getting a match data closer to today will make the model and results more reflective.
 
+● Larger sample size: With only 4000 observations for model training and around 800 observations for accuracy testing, the high accuracy of the model only has theoretical stringency. For further analysis, more samples could be selected and more testing cases should be generalized. One may consider including more records from different servers and even from the professional matches to enlarge the sample size. With a larger sample size, the data for all factors, will be more adequate to find out more accurate results.
+
+● Include more predictors in the model. As discussed above, many factors could contribute to the final outcome of a game. Also I am interested in adding more unstable variables such as hitting rate and players' skills and frequently played champions to make the model more complex but could capture more extreme situations.
+
+● Try different kinds of statistics model and make comparison. We did not perform such comparison since the model is good enough for making prediction indicated by its high accuracy. However, it is always better for exploring more possibilities. Moreover, it is also interesting to explore the effect of certain attribution in depth. Instead of analyzing the general model, we could possibly focus on the effect of certain attribution such as Barons and Dragons. 
+
+\newpage
 
 # References
 
